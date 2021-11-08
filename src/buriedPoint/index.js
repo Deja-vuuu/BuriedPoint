@@ -19,15 +19,15 @@ class BuriedPoint extends EventEmitter {
     init(entry) {
         this.on('collect', this.collect)
         this.exposureObserver()
-       
+        this.clickObserver()
     }
     getCustomAttributesValue(element) {
         try{
-            const eventParamJson = entry.target.attributes['monitor-exposure'].value;
+            const eventParamJson = element?.attributes['monitor-exposure']?.value;
             const eventParam = JSON.parse(eventParamJson)
             return eventParam
         }catch(e){
-            throw new Error(e)
+            return null
         }  
     }
     /**
@@ -38,7 +38,7 @@ class BuriedPoint extends EventEmitter {
             entries.forEach(entry => {
                 if (entry.isIntersecting) { // 进入视图触发
                     try {
-                        const eventParam = this.getCustomAttributesValue(entry)
+                        const eventParam = this.getCustomAttributesValue(entry.target)
                         this.emit('collect', eventParam)
                     } catch (err) {
                         console.log(err);
@@ -46,13 +46,20 @@ class BuriedPoint extends EventEmitter {
                 }
             })
         }, { 
-            root: document.querySelector('body'),
-            rootMargin: "0px",
             threshold: 1 // 目标dom出现在视图的比例 0 - 1
         });
-        let ele = document.querySelectorAll('[monitor-exposure]');
-        ele.forEach((ele, index) => {
+        const ele = document.querySelectorAll('[monitor-exposure]');
+        ele.forEach((ele, index) => { 
             IO && IO.observe(ele)
+        })
+    } 
+
+    clickObserver(){
+        document.addEventListener('click',(e)=>{
+                console.log('e.target',e.target,e,e.path,e.composedPath());
+                
+            const eventParam = this.getCustomAttributesValue(e.target)
+            this.emit('collect', eventParam)
         })
     }
     /**
@@ -60,22 +67,24 @@ class BuriedPoint extends EventEmitter {
      * @param {*} params 
      */
     collect(eventParam) {
-        this.dataList.push({
+        eventParam &&  this.dataList.push({
             eventParam: eventParam
         });
+        console.log('this.dataList',this.dataList);
+        
         // this._timer && clearTimeout(this._timer); // 清除定时器
         // 已经上报的节点、取消对该DOM的观察
         // self._observer.unobserve(entry.target);
         // 超出最大长度直接上报
-        if (this.dataList.length >= this.maxNum) {
-            console.log('超出上报',this.dataList)
-            this.send();
-        } else if (this.dataList.length > 0) {
-            this._timer = setTimeout(() => { // 定时上报
-                console.log('定时上报',this.dataList)
-                this.send();
-            }, this.time);
-        }
+        // if (this.dataList.length >= this.maxNum) {
+        //     console.log('超出上报',this.dataList)
+        //     this.send();
+        // } else if (this.dataList.length > 0) {
+        //     this._timer = setTimeout(() => { // 定时上报
+        //         console.log('定时上报',this.dataList)
+        //         this.send();
+        //     }, this.time);
+        // }
         
     }
     // 触发上报数据 

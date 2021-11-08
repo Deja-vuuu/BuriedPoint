@@ -26,6 +26,7 @@ function App() {
               a: index
             })
           }
+          id={`id${index}`}
           onClick={()=>{
             console.log(123);
        
