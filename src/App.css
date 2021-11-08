@@ -1,0 +1,16 @@
+.App {
+  text-align: center;
+  background-color: #282c34;
+  min-height: 100vh;
+  color: white;
+}
+
+
+.content{
+  border:1px solid #21788191;
+  padding:5px
+}
+
+button {
+  font-size: calc(10px + 2vmin);
+}
